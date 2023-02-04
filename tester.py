@@ -1,8 +1,8 @@
-from TwitterUser import *
-import tweepy
-from tokens import *
 import matplotlib.pyplot as plt
 import networkx as nx
+from NetworkController import NetworkController
+from TwitterUser import TwitterUser
+from random import random
 
 
 def get_followers_edges(screen_name):
@@ -18,8 +18,11 @@ def get_followers_edges(screen_name):
    return followers_tuples
 
 
+
 if __name__ == "__main__":
    user = TwitterUser()
+   nc = NetworkController()
+
 
    # Directed graph (edges have direction)
    G = nx.DiGraph()
@@ -30,8 +33,11 @@ if __name__ == "__main__":
    G.add_edges_from(get_followers_edges(screen_name="Peedro_gh")) #insert here the result of get_followers_edges
    G.add_edges_from(get_followers_edges(screen_name="adrii_g_a_")) #insert here the result of get_followers_edges
    G.add_edges_from(get_followers_edges(screen_name="Paolacollado6")) #insert here the result of get_followers_edges
+
+   nc.save_network_graph(G, 'first_test')
    nx.draw(G, pos=nx.circular_layout(G), node_color='r', edge_color='b')
-   
+   nc.represent(G, 'first_test', show=True, save=True)
+
    # Metrics
    print("Edges: ",G.number_of_edges())
    print("Nodes: ",G.number_of_nodes())

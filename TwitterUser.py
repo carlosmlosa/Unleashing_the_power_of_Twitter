@@ -1,10 +1,14 @@
 """
-This class serves as a Linkedin User and has the methods to access peoples accounts and retrieve their connections
+This class serves as a Twitter User and has the methods to access peoples accounts and retrieve their connections
 """
+import pandas as pd
 from tokens import *
 import tweepy
 import json
-
+import time
+import networkx as nx
+from operator import itemgetter
+from NetworkController import NetworkController
 class TwitterUser:
 
     def __init__(self):
@@ -44,3 +48,39 @@ class TwitterUser:
         """
         return self.api.search_users(query, count=maximum)
 
+    def get_user(self, user_id):
+        """Gets user info given its ID"""
+        return self.api.get_user(user_id=user_id)._json
+
+    def get_network_info(self, G, name, save = True):
+        """
+        Given a network, it tries to retrieve all the possible information about the node. It takes time so be patient
+        :param G: the network
+        :return: the escalated network
+        """
+        attributes = ['id', 'screen_name', 'name', 'location', 'followers_count', 'friends_count']
+        to_retrieve = list(G.nodes._nodes.keys())
+        infos = pd.DataFrame(columns = attributes)
+        while to_retrieve != []:
+            try:
+                info = self.get_user(user_id=to_retrieve[0])
+                aux = []
+                for item in attributes:
+                    aux.append(info[item])
+                infos.loc[len(infos)] = aux
+                to_retrieve.pop(0)
+            except Exception as e:
+                print(e)
+                x = str(e)
+                if '429' in x:
+                    # If too many request exceeded we just wait five mintues
+                    time.sleep(60*5)
+                else:
+                    # Otherwise we discard the information
+                    to_retrieve.pop(0)
+                continue
+        for item in attributes:
+            nx.set_node_attributes(G, dict(zip(infos.id, infos[item])), item)
+        if save:
+            NetworkController().save_network_graph(G, name)
+        return G
