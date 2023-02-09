@@ -5,6 +5,8 @@ from TwitterUser import TwitterUser
 from random import random
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import plotly.express as px
 
 def get_followers_edges(screen_name):
    """
@@ -22,13 +24,16 @@ def get_followers_edges(screen_name):
 def build_graph():
    # Directed graph (edges have direction)
    G = nx.DiGraph()
-   G.add_edges_from(get_followers_edges(screen_name="Luiiisoo")) #insert here the result of get_followers_edges
-   G.add_edges_from(get_followers_edges(screen_name="seryi000")) #insert here the result of get_followers_edges
-   G.add_edges_from(get_followers_edges(screen_name="soofibr")) #insert here the result of get_followers_edges
-   G.add_edges_from(get_followers_edges(screen_name="mv_claudiaa")) #insert here the result of get_followers_edges
-   G.add_edges_from(get_followers_edges(screen_name="Peedro_gh")) #insert here the result of get_followers_edges
-   G.add_edges_from(get_followers_edges(screen_name="adrii_g_a_")) #insert here the result of get_followers_edges
-   G.add_edges_from(get_followers_edges(screen_name="Paolacollado6")) #insert here the result of get_followers_edges
+   relationships = pd.read_csv('relationships.csv')
+   for index, row in relationships.iterrows():
+    if row["relationship"] == "following":
+      G.add_edge(row["person1"],row["person2"])
+      G.add_edge(row["person2"],row["person1"])
+    elif row["relationship"] == "following only by person1":
+      G.add_edge(row["person1"],row["person2"])
+    elif row["relationship"] == "following only by person2":
+      G.add_edge(row["person2"],row["person1"])
+
    return G
 
 def save_bar_figure(data, file_name):
@@ -37,28 +42,38 @@ def save_bar_figure(data, file_name):
       :param data: output networkx function
       :param file_name: name to save the image
       """
-   data = sorted(data.values(),reverse=True)
-   data = np.unique(data, return_counts=True)
-   key =[str(round(item,3)) for item in data[0]]
-   plt.bar(key,data[1])
+   # data = sorted(data.values(),reverse=True)
+   # data = np.unique(data, return_counts=True)
+   # key =[str(round(item,3)) for item in data[0]]
+   plt.hist(data.values())
+   # print(data)
    plt.title(file_name+" histogram")
    plt.xlabel(file_name)
    plt.ylabel("# of Nodes")
    plt.savefig("./figures/"+file_name+"_histogram")
    plt.close()
+#   plt.show()
 
+
+def save_bar_figure_html(data, file_name):
+  """
+    Saves histogram plot
+    :param data: output networkx function
+    :param file_name: name to save the image
+    """
+  data = pd.DataFrame(data=data.values(),columns=[file_name])
+  fig = px.histogram(data,x = file_name,title=file_name+" histogram")
+  fig.write_html("./figures/"+file_name+".html")
 
 if __name__ == "__main__":
    user = TwitterUser()
    nc = NetworkController()
 
    # G = build_graph()
-   # nc.save_network_graph(G, 'first_test')
+   # nc.save_network_graph(G, 'senators')
    # nx.draw(G, pos=nx.circular_layout(G), node_color='r', edge_color='b')
-   # nc.represent(G, 'first_test', show=True, save=True)
-   G = nc.load_network_graph("second_test")
-
-   # G = nx.random_lobster(100,.5,.6)
+   # nc.represent(G, 'senators', show=True, save=True)
+   G = nc.load_network_graph("senators")
 
 
    # Metrics
@@ -71,27 +86,28 @@ if __name__ == "__main__":
 
    # Degree Distribution
    degree_sequence = sorted((d for n, d in G.degree()), reverse=True)
-   fig = plt.bar(*np.unique(degree_sequence, return_counts=True))
+   plt.bar(*np.unique(degree_sequence, return_counts=True))
    plt.title("Degree histogram")
    plt.xlabel("Degree")
    plt.ylabel("# of Nodes")
    # plt.show()
    plt.savefig("./figures/Degree histogram")
    plt.close()
-   
+   ds_df = pd.DataFrame(data=degree_sequence,columns=["Degree"])
+   fig = px.histogram(ds_df,x="Degree",title="Degree_histogram")
+   fig.write_html("./figures/Degree histogram.html")
 
 
    # Clustering Coefficient
    # https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.cluster.clustering.html#networkx.algorithms.cluster.clustering
-   # warning all nodes have clustering = 0
    clustering = nx.clustering(G)
    save_bar_figure(clustering,"clustering")
-
+   save_bar_figure_html(clustering,"clustering")
 
    # Pagerank
-   # Warning values with only 1 count are not visible
    pagerank=nx.pagerank(G)
    save_bar_figure(pagerank,"pagerank")
+   save_bar_figure_html(pagerank,"pagerank")
 
 
    # Diameter
@@ -102,16 +118,17 @@ if __name__ == "__main__":
    # save_bar_figure(eccentricity,"eccentricity")
    
    # Closeness
-   # Warning values with only 1 count are not visible
    closeness = nx.closeness_centrality(G)
    save_bar_figure(closeness,"closeness")
+   save_bar_figure_html(closeness,"closeness")
 
    # Betweeness
    betweeness = nx.betweenness_centrality(G)
    save_bar_figure(betweeness,"betweeness")
+   save_bar_figure_html(betweeness,"betweeness")
 
-   katz = nx.katz_centrality(G)
-   save_bar_figure(katz,"katz_centrality")
+   
+
    
    
    
