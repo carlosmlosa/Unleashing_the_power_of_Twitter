@@ -7,16 +7,18 @@ import networkx as nx
 import os
 import pickle
 import plotly.graph_objects as go
+import plotly.express as px
+import numpy as np
 from random import random
 from random import choice
-
+import requests
 
 class NetworkController:
 
     def __init__(self):
         if 'networks' not in os.listdir():
             os.mkdir('networks')
-
+        px.set_mapbox_access_token(open(".mapbox_token").read())
     def save_network_graph(self, G, name):
         """
         Saves network
@@ -58,26 +60,86 @@ class NetworkController:
             edges.append(edge)
         return edges
 
-    def random_point(self):
-        """returns a random point"""
-        return [random(), random()]
 
-    def assign_random_points(self, G):
-        """
-        Assigns random points to a network
-        :param G: Network
-        :return: the same network with node position as attributes
-        """
-        if 'pos' not in G.nodes._nodes[choice(list(G.nodes._nodes))].keys():
-            pos = {}
-            for item in G.nodes:
-                pos[item] = self.random_point()
-            nx.set_node_attributes(G, pos, 'pos')
+    def assign_network_properties(self, df, G):
+        properties= ['id', 'screen_name', 'location', 'followers_count', 'friends_count', 'x', 'y', 'Party', 'State']
+        # Twitter attributes
+        for item in properties:
+            nx.set_node_attributes(G, df.set_index('name')[item].to_dict(), item)
         return G
 
-    def represent(self, G, name, show=False, save=True):
+    def get_size(self, score, min_score, max_score, min_size=1, max_size=25):
+        size = (score - min_score) / (max_score - min_score) * (max_size - min_size) + min_size
+        return np.clip(size, min_size, max_size)
+
+    def represent_senators_map(self, df, G, name, show=False, save=True):
+        # Assign attributes to the network
+        G = self.assign_network_properties(df, G)
+
+        # plot nodes
+        fig = px.scatter_mapbox(df,
+                                lat='x',
+                                lon='y',
+                                color="Party",
+                                hover_name='Senator',
+                                hover_data=['screen_name', 'State', 'followers_count', 'friends_count'],
+                                color_discrete_map={'Republican': 'red', 'Democratic': 'blue'},
+                                size=df.followers_count.apply(lambda x: self.get_size(x, df.followers_count.min(), df.followers_count.max())),
+                                title=name,
+                                mapbox_style="carto-positron",
+                                zoom=4)
+
+        edge_x, edge_y, party_origin = [], [], []
+        for edge in G.edges():
+            x0, y0 = G.nodes[edge[0]]['x'], G.nodes[edge[0]]['y']
+            x1, y1 = G.nodes[edge[1]]['x'], G.nodes[edge[1]]['y']
+            party_origin.append(G.nodes[edge[0]]['Party'])
+            party_origin.append(G.nodes[edge[0]]['Party'])
+            party_origin.append(G.nodes[edge[0]]['Party'])
+            edge_x.append(x0)
+            edge_x.append(x1)
+            edge_x.append(None)
+            edge_y.append(y0)
+            edge_y.append(y1)
+            edge_y.append(None)
+        data = pd.DataFrame({'x': edge_x, 'y': edge_y, 'Party': party_origin})
+
+
+        fig.add_trace(go.Scattermapbox(name= 'Republican Follows', lat=data[data.Party == 'Republican'].x.to_list(), lon=data[data.Party == 'Republican'].y.to_list(),
+                                       mode='lines', line=dict(color='#EB9988', width=0.01)))
+        fig.data[-1]['showlegend'] = True
+        fig.add_trace(go.Scattermapbox(name= 'Democratic Follows', lat=data[data.Party == 'Democratic'].x.to_list(), lon=data[data.Party == 'Democratic'].y.to_list(),
+                                       mode='lines', line=dict(color='#A3EBFB', width=0.01)))
+        fig.data[-1]['showlegend'] = True
+        fig.add_trace(go.Scattermapbox(name= 'Rest of Follows', lat=data[data.Party.isin(['Democratic', 'Republican']) == False].x.to_list(),
+                                       lon=data[data.Party.isin(['Democratic', 'Republican']) == False].y.to_list(),
+                                       mode='lines', line=dict(color='#A7A7A7', width=0.01)))
+        fig.data[-1]['showlegend'] = True
+
+        fig.update_traces(line=dict(width=0.001))
+        fig.update_layout(mapbox_style="open-street-map")
+        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        fig.update_layout(annotations=[dict(
+                                text="OSNA: Spring 2023, Miguel Cozar and Carlos Munoz",
+                                showarrow=False,
+                                xref="paper", yref="paper",
+                                x=0.005, y=-0.002)],
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+           title = 'US Senators Twitter Analysis',
+           titlefont_size = 16
+        )
+        if save:
+            self.save_network_representation('networks/representations/%s.html'%name)
+        if show:
+            fig.show()
+        return fig
+
+
+    def represent(self, df, G, name, show=False, save=True):
         """
         Represents a network if it is not represented yet
+        :param df: dataframe with the data of the senators
         :param G: networkx to be represented
         :param name: name of the file to save, company by default
         :param show: boolean to show the plot, False by default
@@ -85,7 +147,7 @@ class NetworkController:
         :return: nothing
         """
 
-        G = self.assign_random_points(G)
+        G = self.assign_network_properties(df, G)
 
         edge_x = []
         edge_y = []
