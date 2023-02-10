@@ -7,7 +7,6 @@ import tweepy
 import json
 import time
 import networkx as nx
-from operator import itemgetter
 from NetworkController import NetworkController
 class TwitterUser:
 

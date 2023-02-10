@@ -68,19 +68,12 @@ def save_bar_figure_html(data, file_name):
 if __name__ == "__main__":
    user = TwitterUser()
    nc = NetworkController()
-
-   # G = build_graph()
-   # nc.save_network_graph(G, 'senators')
-   # nx.draw(G, pos=nx.circular_layout(G), node_color='r', edge_color='b')
-   # nc.represent(G, 'senators', show=True, save=True)
    G = nc.load_network_graph("senators")
-
+   df = pd.read_csv('us_senators.csv')
 
    # Metrics
    print("Edges: ",G.number_of_edges())
    print("Nodes: ",G.number_of_nodes())
-   # print("Degree: ",G.degree())
-   # print("Out Degree: ",G.out_degree())
    print("Order: ",G.order())
    print("Size: ",G.size())
 
@@ -126,6 +119,9 @@ if __name__ == "__main__":
    betweeness = nx.betweenness_centrality(G)
    save_bar_figure(betweeness,"betweeness")
    save_bar_figure_html(betweeness,"betweeness")
+
+   # Representation
+   nc.represent_senators_map(df, G, name= 'US_Senators_OSNA', save=True, show=False)
 
    
 
