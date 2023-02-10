@@ -63,7 +63,7 @@ def save_bar_figure_html(data, file_name):
     """
   data = pd.DataFrame(data=data.values(),columns=[file_name])
   fig = px.histogram(data,x = file_name,title=file_name+" histogram")
-  fig.write_html("./figures/"+file_name+".html")
+  fig.write_image("./figures/"+file_name+".png")
 
 if __name__ == "__main__":
    user = TwitterUser()
@@ -95,7 +95,7 @@ if __name__ == "__main__":
    plt.close()
    ds_df = pd.DataFrame(data=degree_sequence,columns=["Degree"])
    fig = px.histogram(ds_df,x="Degree",title="Degree_histogram")
-   fig.write_html("./figures/Degree histogram.html")
+   fig.write_image("./figures/Degree histogram.png")
 
 
    # Clustering Coefficient
