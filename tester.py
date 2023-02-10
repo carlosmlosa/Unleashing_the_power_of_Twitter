@@ -95,7 +95,7 @@ if __name__ == "__main__":
    plt.close()
    ds_df = pd.DataFrame(data=degree_sequence,columns=["Degree"])
    fig = px.histogram(ds_df,x="Degree",title="Degree_histogram")
-   fig.write_image("./figures/Degree histogram.png")
+   fig.write_image("./figures/Degree_histogram.png")
 
 
    # Clustering Coefficient
@@ -114,8 +114,8 @@ if __name__ == "__main__":
    # networkx.exception.NetworkXError: Found infinite 
    # path length because the digraph is not strongly 
    # connected
-   # eccentricity = nx.eccentricity(G)
-   # save_bar_figure(eccentricity,"eccentricity")
+   # diameter = nx.diameter(G)
+   # save_bar_figure(diameter,"diameter")
    
    # Closeness
    closeness = nx.closeness_centrality(G)
