@@ -9,6 +9,7 @@ import pickle
 import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
+from collections import defaultdict
 from random import random
 from random import choice
 import requests
@@ -130,11 +131,63 @@ class NetworkController:
            titlefont_size = 16
         )
         if save:
-            self.save_network_representation('networks/representations/%s.html'%name)
+            self.save_network_representation(fig, name)
         if show:
             fig.show()
         return fig
 
+    def count_interparty_followers(self, G):
+        party_counts = defaultdict(int)
+        for node in G.nodes():
+            node_party = G.nodes[node]['Party']
+            in_neighbors = G.in_edges(node)
+            for in_neighbor in in_neighbors:
+                neighbor_party = G.nodes[in_neighbor[0]]['Party']
+                if neighbor_party != node_party:
+                    party_counts[node] += 1
+        return dict(party_counts)
+
+    def represent_senators_by_connections(self, df, G, name):
+        G = self.assign_network_properties(df, G)
+
+        df = df.merge(pd.DataFrame(list(G.in_degree), columns=['name', 'senator_followers']), on='name')
+
+        fig= px.scatter_mapbox(df,
+                                        lat='x',
+                                        lon='y',
+                                        color='Party',
+                                        hover_name='Senator',
+                                        hover_data=['screen_name', 'State', 'followers_count', 'friends_count', 'senator_followers'],
+                                        size=df.senator_followers.apply(lambda x: self.get_size(x, df.senator_followers.min(), df.senator_followers.max())),
+                                        #title='Senators followers between them',
+                                        color_discrete_map={'Republican': 'red', 'Democratic': 'blue'},
+                                        mapbox_style="carto-positron",
+                                        zoom=4)
+        fig.update_layout(mapbox_style="open-street-map", margin=dict(b=20, l=5, r=5, t=40))
+        self.save_network_representation(fig, name)
+        return fig
+
+
+    def get_interparty_representation(self, df, G, name):
+        G = self.assign_network_properties(df, G)
+
+        df = df.merge(pd.DataFrame(list(self.count_interparty_followers(G).items()), columns=['name', 'interparty_followers']), on='name')
+
+
+        fig= px.scatter_mapbox(df,
+                                        lat='x',
+                                        lon='y',
+                                        color='Party',
+                                        hover_name='Senator',
+                                        hover_data=['screen_name', 'State', 'followers_count', 'friends_count', 'interparty_followers'],
+                                        size=df.interparty_followers.apply(lambda x: self.get_size(x, df.interparty_followers.min(), df.interparty_followers.max())),
+                                        #title='Interparty connections ',
+                                        color_discrete_map={'Republican': 'red', 'Democratic': 'blue'},
+                                        mapbox_style="carto-positron",
+                                        zoom=4)
+        fig.update_layout(mapbox_style="open-street-map", margin=dict(b=20, l=5, r=5, t=40))
+        self.save_network_representation(fig, name)
+        return fig
 
     def represent(self, df, G, name, show=False, save=True):
         """
