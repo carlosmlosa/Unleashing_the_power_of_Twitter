@@ -88,37 +88,55 @@ if __name__ == "__main__":
    plt.close()
    ds_df = pd.DataFrame(data=degree_sequence,columns=["Degree"])
    fig = px.histogram(ds_df,x="Degree",title="Degree_histogram")
-   fig.write_image("./figures/Degree histogram.png")
+   fig.write_image("./figures/Degree_histogram.png")
 
+   degree_dict = {n:d for n,d in G.degree()}
+   degree_ordered = sorted(degree_dict.items(), key=lambda x:x[1],reverse=True)
+   degree_top5 = degree_ordered[:5]
 
    # Clustering Coefficient
    # https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.cluster.clustering.html#networkx.algorithms.cluster.clustering
    clustering = nx.clustering(G)
    save_bar_figure(clustering,"clustering")
    save_bar_figure_html(clustering,"clustering")
+   clustering_ordered = sorted(clustering.items(), key=lambda x:x[1],reverse=True)
+   clustering_top5 = clustering_ordered[:5]
 
    # Pagerank
    pagerank=nx.pagerank(G)
    save_bar_figure(pagerank,"pagerank")
    save_bar_figure_html(pagerank,"pagerank")
+   pagerank_ordered = sorted(pagerank.items(), key=lambda x:x[1],reverse=True)
+   pagerank_top5 = pagerank_ordered[:5]
 
 
    # Diameter
    # networkx.exception.NetworkXError: Found infinite 
    # path length because the digraph is not strongly 
    # connected
-   # eccentricity = nx.eccentricity(G)
-   # save_bar_figure(eccentricity,"eccentricity")
+   # diameter = nx.diameter(G)
+   # save_bar_figure(diameter,"diameter")
    
    # Closeness
    closeness = nx.closeness_centrality(G)
    save_bar_figure(closeness,"closeness")
    save_bar_figure_html(closeness,"closeness")
+   closenes_ordered = sorted(closeness.items(), key=lambda x:x[1],reverse=True)
+   closenes_top5 = closenes_ordered[:5]
 
    # Betweeness
    betweeness = nx.betweenness_centrality(G)
    save_bar_figure(betweeness,"betweeness")
    save_bar_figure_html(betweeness,"betweeness")
+   betweeness_ordered = sorted(betweeness.items(), key=lambda x:x[1],reverse=True)
+   betweeness_top5 = betweeness_ordered[:5]
+
+   # Top values
+   print(f"Degree: {degree_top5}")
+   print(f"Clustering: {clustering_top5}")
+   print(f"Pagerank: {pagerank_top5}")
+   print(f"Closeness: {closenes_top5}")
+   print(f"Betweeness: {betweeness_top5}")
 
    # Representation
    nc.represent_senators_map(df, G, name= 'US_Senators_OSNA', save=True, show=False)
