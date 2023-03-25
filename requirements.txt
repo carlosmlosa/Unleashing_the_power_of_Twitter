@@ -1,3 +1,4 @@
 pandas
 tweepy
 requests
+snscraper
