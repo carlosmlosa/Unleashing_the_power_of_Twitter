@@ -1,5 +1,5 @@
-# LinkedIn_socialMediaDataAnalysis
+# Twitter_socialMediaDataAnalysis
 
-Run tester.py for building the graph and saving the figures.
+Social media, specifically Twitter, plays a crucial role in political discourse and communication. It is basically the window of people to their candidates, and what they publish may determine their success in the elections. A deep analysis is needed in order to better understand the current situation and think of strategies to succeed.
 
-The files us_senators.csv and relationships are generated running the jupyter notebooks "Senators Dataset.ipynb" and "Get_senators_relations.ipynb"
+Our paper joins machine learning topic models, geography and popularity to explain the current political landscape and provide insights about the most influential senators and their discourse.
