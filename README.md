@@ -1,5 +1,3 @@
-# Twitter_socialMediaDataAnalysis
+# Unleashing the Power of Twitter: A Data Analysis of the US Senate’s Social Media Strategies with Unsupervised Machine Learning
 
-Social media, specifically Twitter, plays a crucial role in political discourse and communication. It is basically the window of people to their candidates, and what they publish may determine their success in the elections. A deep analysis is needed in order to better understand the current situation and think of strategies to succeed.
-
-Our paper joins machine learning topic models, geography and popularity to explain the current political landscape and provide insights about the most influential senators and their discourse.
+Social media, such as Twitter, plays a crucial role in political discourse and communication. It is the window of voters to their candidates, and what senators publish may determine their success in the elections. A deep analysis is needed to com- prehend the current situation and generate strate- gies to reach the audience. This paper joins the creation of a self-made dataset, using machine learning topic models, analyzing how geography influences the political landscape, and employing a proposed popularity metric to explain the cur- rent political landscape and provide insights about the most influential senators and their discourse.
